@@ -29,7 +29,6 @@ import Student from "../student/Student";
 import Employees from "../employees/Employees";
 import Swal from 'sweetalert2'
 import { useEffect, useState } from "react";
-import { render } from "@testing-library/react";
 
 export default function AdminDashboard() {
     var navigate = useNavigate()
