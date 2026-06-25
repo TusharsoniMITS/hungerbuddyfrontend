@@ -24,7 +24,7 @@ function App() {
     <div style={{fontFamily:'Quicksand'}}>
       <Router>
         <Routes>
-          <Route element={<BranchLogin />} path="/branchlogin"></Route>
+          <Route element={<BranchLogin />} path="/"></Route>
           <Route element={<BranchDashboard />} path="/branchdashboard/*"></Route>
           {/* <Route element={<Branch/>} path="/branch"></Route> */}
           {/* <Route element={<FoodItem/>} path="/fooditem"></Route> */}
