@@ -1,15 +1,15 @@
-import { NavigationType, useNavigate } from "react-router-dom"
-import { Grid, Button, AppBar, Toolbar, Avatar, ListItem, Divider } from "@mui/material";
+import { useNavigate } from "react-router-dom"
+import { Grid, AppBar, Toolbar, Avatar, ListItem, Divider } from "@mui/material";
 import { serverURL } from "../../services/FetchNodeServices";
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import cutlery from '../../assets/cutlery.png';
-import fooditems from '../../assets/masala-dosa.png';
+// import DashboardIcon from '@mui/icons-material/Dashboard';
+// import cutlery from '../../assets/cutlery.png';
+// import fooditems from '../../assets/masala-dosa.png';
 import Logout from '../../assets/check-out.png';
-import Order from '../../assets/order.png';
+// import Order from '../../assets/order.png';
 
 import branch from '../../assets/branch.png'
 import batch from '../../assets/batch.png'
@@ -32,9 +32,9 @@ import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
     var navigate = useNavigate()
-    const handleClick = () => {
-        navigate('/category')
-    }
+    // const handleClick = () => {
+    //     navigate('/category')
+    // }
     const [userData,setUserData]=useState(null)
      useEffect(() => {
             if (typeof window !== 'undefined') {

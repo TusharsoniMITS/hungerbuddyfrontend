@@ -1,4 +1,4 @@
-import Card from "@mui/material/Card";
+// import Card from "@mui/material/Card";
 import { postData } from "../../services/FetchNodeServices";
 import { Grid, FormControl, FormLabel, TextField, Button } from "@mui/material";
 import { useState } from "react";
@@ -67,7 +67,7 @@ export default function AdminLogin() {
   const handleSubmit = async () => {
     var body = { emailid:emailId, password:password };
     var res = await postData("admin/chk_Admin_login", body);
-    if (res.status==true) {
+    if (res.status===true) {
       navigate("/admindashboard");
       localStorage.setItem("ADMIN", JSON.stringify(res.data));
     } else {
