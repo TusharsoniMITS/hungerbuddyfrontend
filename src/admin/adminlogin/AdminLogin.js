@@ -127,7 +127,17 @@ export default function AdminLogin() {
               variant="contained"
               onClick={handleSubmit}
             >
-              Sign in
+              Login
+            </Button>
+          </Grid>
+          <Grid size={12} style={{padding:10}}>
+            <Button
+              fullWidth
+              style={{ color: "#ffff", background: "hsla(321, 32%, 37%, 1.00)"  }}
+              variant="contained"
+              onClick={()=>navigate('/branchlogin')}
+            >
+              Branch Login
             </Button>
           </Grid>
         </Grid>

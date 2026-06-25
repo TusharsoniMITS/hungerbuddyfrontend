@@ -62,8 +62,8 @@ const useStyles = makeStyles(() => ({
 export default function BranchLogin() {
 
   const classes = useStyles();
-  const [emailId, setEmailId] = useState('tusharsoni@gmail.com');
-  const [password, setPassword] = useState('1185#!98');
+  const [emailId, setEmailId] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate('');
   const [userData, setUserData] = useState(null)
   useEffect(() => {
@@ -145,7 +145,17 @@ export default function BranchLogin() {
               variant="contained"
               onClick={handleSubmit}
             >
-              Sign in
+              Login
+            </Button>
+          </Grid>
+          <Grid size={12} style={{ padding: 10 }}>
+            <Button
+              fullWidth
+              style={{ color: "#ffff", background: "hsla(321, 32%, 37%, 1.00)"}}
+              variant="contained"
+              onClick={()=>navigate('/admin')}
+            >
+              Admin Login
             </Button>
           </Grid>
         </Grid>
