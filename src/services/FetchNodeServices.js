@@ -1,5 +1,6 @@
 import axios from "axios";
-const serverURL = 'http://localhost:4000'
+// const serverURL = 'http://localhost:4000'
+const serverURL = process.env.REACT_APP_SERVER_URL || "https://hungerbuddybackend.onrender.com";
 async function postData(url, body) {
     try {
         var response = await axios.post(`${serverURL}/${url}`, body)
