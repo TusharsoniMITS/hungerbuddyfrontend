@@ -135,7 +135,7 @@ export default function AdminLogin() {
               fullWidth
               style={{ color: "#ffff", background: "hsla(321, 32%, 37%, 1.00)"  }}
               variant="contained"
-              onClick={()=>navigate('/branchlogin')}
+              onClick={()=>navigate('/')}
             >
               Branch Login
             </Button>
