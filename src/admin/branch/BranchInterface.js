@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl,InputLabel,Select,MenuItem } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -64,6 +65,7 @@ export default function BranchInterface({refresh,setRefresh }) {
     const [contact, setContact] = useState('')
     const [contactPerson, setContactPerson] = useState('')
     const [error, setError] = useState({ imgError: null })
+  const [loading, setLoading] = useState(false);
     const handleError = (label, message) => {
         setError((prev) => ({ ...prev, [label]: message }))
     }
@@ -71,8 +73,10 @@ export default function BranchInterface({refresh,setRefresh }) {
         fetchAllState()
     },[])
     const fetchAllState=async()=>{
+        setLoading(true)
         var res=await getData('statecity/fetch_state')
         setStateList(res.data)
+        setLoading(false)
     }
     const fillState=()=>{
          return stateList.map((item)=>{
@@ -136,6 +140,7 @@ export default function BranchInterface({refresh,setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+        setLoading(true)
             var body = {
                 'branchname': branchName, 'address': address,
                 'latlong': latlong, 'stateid': state,
@@ -165,6 +170,7 @@ export default function BranchInterface({refresh,setRefresh }) {
                 });
             }
         }
+        setLoading(false)
         handleReset()
         setRefresh(!refresh)
 
@@ -181,7 +187,10 @@ export default function BranchInterface({refresh,setRefresh }) {
     }
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (
+        <>
+        <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -249,5 +258,5 @@ export default function BranchInterface({refresh,setRefresh }) {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div></>)
 }

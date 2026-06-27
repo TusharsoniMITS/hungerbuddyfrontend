@@ -9,6 +9,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -71,6 +72,8 @@ export default function FoodItemDisplay() {
     const [picture, setPicture] = useState({ bytes: '', fileName: icon })
     const [rating, setRating] = useState('')
     const [status, setStatus] = useState('')
+    const [loading, setLoading] = useState(false);
+
 
     const [categoryName, setcategoryName] = useState('')
     const [categoryIcon, setCategoryIcon] = useState({ bytes: '', fileName: icon })
@@ -157,6 +160,7 @@ export default function FoodItemDisplay() {
         return isError
     }
     const handleclick = async () => {
+        setLoading(true)
         var body = {
             'fooditemid': foodItemId, 'categoryid': categoryId,
             'branchid': branchId, 'fooditemname': foodItemName,
@@ -167,6 +171,7 @@ export default function FoodItemDisplay() {
             'updatedtime': getTime(), 'userid': 'tushar'
         }
         var response = await postData('fooditem/edit_fooditem', body);
+                setLoading(false)
         if (response.status) {
             Swal.fire({
                 position: "center",
@@ -203,18 +208,18 @@ export default function FoodItemDisplay() {
     }
 
     const handleEditPicture = async () => {
+        setLoading(true)
         var formData = new FormData();
         formData.append('fooditemid', foodItemId);
         formData.append('picture', picture.bytes);
         formData.append('createddate', getDate());
         formData.append('createdtime', getTime());
         formData.append('userid', 'tushar');
-
         var response = await postData(
             'fooditem/edit_fooditem_picture',
             formData
         );
-
+        setLoading(false)
         if (response.status) {
             Swal.fire({
                 position: "center",
@@ -225,7 +230,6 @@ export default function FoodItemDisplay() {
                 toast: true
             });
 
-            setOpen(false);
             fetchAllFoodItem();
 
         } else {
@@ -239,7 +243,6 @@ export default function FoodItemDisplay() {
                 toast: true
             });
         }
-
     }
 
     const saveAndCancelButton = () => {
@@ -314,7 +317,7 @@ export default function FoodItemDisplay() {
     }
 
     const showFoodItemInterface = () => {
-        return (<div >
+        return (<div>
             <Grid container spacing={1}>
                 <Grid size={12}>
                     <div className={classes.heading}>
@@ -377,52 +380,52 @@ export default function FoodItemDisplay() {
                 <Grid size={3}>
                     <div style={{ padding: 10 }}>
                         <FormControl size="small" fullWidth>
-    <InputLabel>Food Type</InputLabel>
+                            <InputLabel>Food Type</InputLabel>
 
-    <Select
-        label="Food Type"
-        value={foodItemType}
-        onChange={(e) => setFoodItemType(e.target.value)}
-    >
-        <MenuItem value="">
-            -Select Food Type-
-        </MenuItem>
+                            <Select
+                                label="Food Type"
+                                value={foodItemType}
+                                onChange={(e) => setFoodItemType(e.target.value)}
+                            >
+                                <MenuItem value="">
+                                    -Select Food Type-
+                                </MenuItem>
 
-        <MenuItem value="Veg">
-            Veg
-        </MenuItem>
+                                <MenuItem value="Veg">
+                                    Veg
+                                </MenuItem>
 
-        <MenuItem value="Non-Veg">
-            Non-Veg
-        </MenuItem>
-    </Select>
-</FormControl>
+                                <MenuItem value="Non-Veg">
+                                    Non-Veg
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
                         {/*<TextField onChange={(e) => setFoodItemType(e.target.value)} label='fooditem type' fullWidth helperText={error?.foodItemType} error={error?.foodItemType} onFocus={() => handleError('foodItemType', '')} value={foodItemType} />*/}
                     </div>
                 </Grid>
                 <Grid size={3}>
                     <div style={{ padding: 10 }}>
                         <FormControl size="small" fullWidth>
-    <InputLabel>Food Taste</InputLabel>
+                            <InputLabel>Food Taste</InputLabel>
 
-    <Select
-        label="Food Taste"
-        value={foodItemTaste}
-        onChange={(e) => setFoodItemTaste(e.target.value)}
-    >
-        <MenuItem value="">
-            -Select Food Taste-
-        </MenuItem>
+                            <Select
+                                label="Food Taste"
+                                value={foodItemTaste}
+                                onChange={(e) => setFoodItemTaste(e.target.value)}
+                            >
+                                <MenuItem value="">
+                                    -Select Food Taste-
+                                </MenuItem>
 
-        <MenuItem value="Spicy">
-            Spicy
-        </MenuItem>
+                                <MenuItem value="Spicy">
+                                    Spicy
+                                </MenuItem>
 
-        <MenuItem value="Non Spicy">
-            Non Spicy
-        </MenuItem>
-    </Select>
-</FormControl>
+                                <MenuItem value="Non Spicy">
+                                    Non Spicy
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
                         {/*<TextField onChange={(e) => setFoodItemTaste(e.target.value)} label='FoodItem taste' fullWidth value={foodItemTaste} helperText={error?.foodItemTaste} error={error?.foodItemTaste} onFocus={() => handleError('foodItemTaste', '')} />*/}
                     </div>
                 </Grid>
@@ -455,26 +458,26 @@ export default function FoodItemDisplay() {
                 <Grid size={3}>
                     <div style={{ padding: 10 }}>
                         <FormControl size="small" fullWidth>
-    <InputLabel>Status</InputLabel>
+                            <InputLabel>Status</InputLabel>
 
-    <Select
-        label="Status"
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-    >
-        <MenuItem value="">
-            -Select Status-
-        </MenuItem>
+                            <Select
+                                label="Status"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                            >
+                                <MenuItem value="">
+                                    -Select Status-
+                                </MenuItem>
 
-        <MenuItem value="Available">
-            Available
-        </MenuItem>
+                                <MenuItem value="Available">
+                                    Available
+                                </MenuItem>
 
-        <MenuItem value="Unavailable">
-            Not-Available
-        </MenuItem>
-    </Select>
-</FormControl>
+                                <MenuItem value="Unavailable">
+                                    Not-Available
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
                         {/*<TextField onChange={(e) => setStatus(e.target.value)} label='status' fullWidth helperText={error?.status} error={error?.status} onFocus={() => handleError('status', '')} value={status} />*/}
                     </div>
                 </Grid>
@@ -501,8 +504,10 @@ export default function FoodItemDisplay() {
 
     /***************************************/
     const fetchAllFoodItem = async () => {
+        setLoading(true)
         var response = await getData('fooditem/fetch_all_fooditem');
         setFoodItemList(response.data);
+        setLoading(false)
     }
     useEffect(function () {
         fetchAllFoodItem();
@@ -550,9 +555,11 @@ export default function FoodItemDisplay() {
         }).then(async (result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
+                setLoading(true)
                 var response = await postData('fooditem/delete_fooditem', { fooditemid: cid })
                 Swal.fire(response.message);
                 fetchAllFoodItem()
+                setLoading(false)
             }
             else if (result.isDenied) {
                 Swal.fire("Changes are not saved", "", "info");
@@ -568,12 +575,12 @@ export default function FoodItemDisplay() {
                     { title: 'fooditem Id', field: 'fooditemid' },
                     { title: 'category', field: 'categoryname' },
                     { title: 'branch', field: 'branchname' },
-                    { title: 'food',render:(rowData)=>(<div>{rowData.fooditemname}({rowData.fooditemtype})</div>) },
+                    { title: 'food', render: (rowData) => (<div>{rowData.fooditemname}({rowData.fooditemtype})</div>) },
                     { title: 'type', field: 'fooditemtype' },
                     { title: 'taste', field: 'fooditemtaste' },
                     // { title: 'ingridients', field: 'ingridients' },
-                    { title: 'full/half',render:(rowData)=>(<div>&#8377;{rowData.fullprice}/&#8377;{rowData.halfprice}</div>)},
-                    { title: 'offer', render:(rowData)=>(<div>&#8377;{rowData.offerprice}</div>) },
+                    { title: 'full/half', render: (rowData) => (<div>&#8377;{rowData.fullprice}/&#8377;{rowData.halfprice}</div>) },
+                    { title: 'offer', render: (rowData) => (<div>&#8377;{rowData.offerprice}</div>) },
                     { title: 'rating', field: 'rating' },
                     { title: 'status', field: 'status' },
                     { title: 'Picture', render: (rowData) => (<div onClick={() => handleOpenDialog(rowData, 'picture ')}><EditIconComponent image={rowData.picture} /></div>) },
@@ -595,10 +602,12 @@ export default function FoodItemDisplay() {
         </div>)
     };
 
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             {displayCategory()}
         </div>
         {showDialog()}
-    </div>);
+    </div></>);
 }

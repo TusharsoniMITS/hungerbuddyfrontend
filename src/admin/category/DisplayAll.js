@@ -2,13 +2,16 @@ import MaterialTable from "@material-table/core";
 import { useEffect, useState } from "react";
 import { getDate, getTime, postData, getData, serverURL } from "../../services/FetchNodeServices";
 import { makeStyles } from "@mui/styles";
-import { IconButton, Dialog, DialogTitle, DialogContent, Button, Grid, TextField } from "@mui/material";
+import { IconButton, Dialog, DialogTitle, DialogContent, Button, Grid, TextField, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import Swal from "sweetalert2";
 import icon from '../../assets/icon.png'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
+import { Backdrop, CircularProgress } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
+
 
 
 
@@ -51,7 +54,7 @@ const useStyle = makeStyles(() => ({
   }
 }))
 
-export default function DisplayAll({refresh,setRefresh }) {
+export default function DisplayAll({ refresh, setRefresh }) {
   const classes = useStyle()
   const [categoryList, setCategoryList] = useState([]);
   const [open, setOpen] = useState(false)
@@ -59,16 +62,19 @@ export default function DisplayAll({refresh,setRefresh }) {
 
   const [categoryId, setCategoryId] = useState('')
   const [branchId, setBranchId] = useState('')
+  const [branchList, setBranchList] = useState([])
   const [categoryName, setcategoryName] = useState('')
   const [categoryIcon, setCategoryIcon] = useState({ bytes: '', fileName: icon })
   const [error, setError] = useState({ imgError: null })
   const [dialogState, setDialogState] = useState('')
   const [pictureStatusButton, setPictureStatusButton] = useState(false)
   const [tempPicture, setTempPicture] = useState('')
+  const [loading, setLoading] = useState(false);
 
-  useEffect(()=>{
+
+  useEffect(() => {
     fetchAllCategory()
-  },[refresh])
+  }, [refresh])
 
   const handleError = (label, message) => {
     setError((prev) => ({ ...prev, [label]: message }))
@@ -88,6 +94,7 @@ export default function DisplayAll({refresh,setRefresh }) {
   }
   const handleclick = async () => {
     if (!validation()) {
+      setLoading(true)
       var body = {
         'categoryid': categoryId,
         'categoryname': categoryName,
@@ -96,6 +103,7 @@ export default function DisplayAll({refresh,setRefresh }) {
         'userid': 'tushar'
       }
       var response = await postData('category/edit_category', body);
+      setLoading(false)
       if (response.status) {
         Swal.fire({
           position: "center",
@@ -106,6 +114,7 @@ export default function DisplayAll({refresh,setRefresh }) {
           toast: true
         });
         setOpen(false)
+        setLoading(false)
         fetchAllCategory()
       } else {
         Swal.fire({
@@ -132,48 +141,49 @@ export default function DisplayAll({refresh,setRefresh }) {
   }
 
   const handleEditPicture = async () => {
-      var formData = new FormData();
-      formData.append('categoryid', categoryId);
-      formData.append('categoryicon', categoryIcon.bytes);
-      formData.append('createddate', getDate());
-      formData.append('createdtime', getTime());
-      formData.append('userid', 'tushar');
+    setLoading(true)
+    var formData = new FormData();
+    formData.append('categoryid', categoryId);
+    formData.append('categoryicon', categoryIcon.bytes);
+    formData.append('createddate', getDate());
+    formData.append('createdtime', getTime());
+    formData.append('userid', 'tushar');
 
-      var response = await postData(
-        'category/edit_picture_category',
-        formData
-      );
+    var response = await postData(
+      'category/edit_picture_category',
+      formData
+    );
+    setLoading(false)
+    if (response.status) {
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: response.message,
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true
+      });
 
-      if (response.status) {
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: response.message,
-          showConfirmButton: false,
-          timer: 2000,
-          toast: true
-        });
+      setOpen(false);
+      fetchAllCategory();
 
-        setOpen(false);
-        fetchAllCategory();
+    } else {
 
-      } else {
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: response.message,
+        showConfirmButton: false,
+        timer: 2000,
+        toast: true
+      });
+    }
 
-        Swal.fire({
-          position: "center",
-          icon: "error",
-          title: response.message,
-          showConfirmButton: false,
-          timer: 2000,
-          toast: true
-        });
-      }
-    
   }
 
   const saveAndCancelButton = () => {
     return (<div style={{ display: "flex", justifyContent: 'space-evenly', width: '100%' }}>
-      <Button onClick={handleEditPicture} variant="contained" style={{backgroundColor: '#572445'}} >Save</Button>
+      <Button onClick={handleEditPicture} variant="contained" style={{ backgroundColor: '#572445' }} >Save</Button>
       <Button onClick={handleCancel} variant="contained" color="error" >Cancel</Button>
     </div>)
   }
@@ -242,6 +252,23 @@ export default function DisplayAll({refresh,setRefresh }) {
     </div>)
   }
 
+  useEffect(() => {
+    fetchAllBranch();
+    fetchAllCategory();
+  }, []);
+
+  const fetchAllBranch = async () => {
+    setLoading(true)
+    var res = await getData('category/fetch_branch');
+    setBranchList(res.data);
+    setLoading(false)
+  };
+
+  const fillbranch = () => {
+    return branchList.map((item) => {
+      return <MenuItem value={item.branchid}>{item.branchname}</MenuItem>;
+    });
+  };
   const showCategoryInterface = () => {
     return (<div >
       <Grid container spacing={1}>
@@ -260,7 +287,9 @@ export default function DisplayAll({refresh,setRefresh }) {
         </Grid>
         <Grid size={12}>
           <div style={{ padding: 10 }}>
-            <TextField onChange={(e) => setBranchId(e.target.value)} label='Branch Name' fullWidth value={branchId} />
+            {/* <TextField onChange={(e) => setBranchId(e.target.value)} label='Branch Name' fullWidth value={branchId} /> */}
+            <FormControl size="small" fullWidth helperText={error?.branchId} error={error?.branchId} onFocus={() => handleError('branchId', '')}><InputLabel>Branch</InputLabel><Select label='Branch' value={branchId} onChange={(e) => setBranchId(e.target.value)}><MenuItem>-Select State-</MenuItem>{fillbranch()}</Select></FormControl>
+
           </div>
         </Grid>
         <Grid size={12}>
@@ -288,12 +317,11 @@ export default function DisplayAll({refresh,setRefresh }) {
 
   /***************************************/
   const fetchAllCategory = async () => {
+    setLoading(true)
     var response = await getData('category/fetch_all_category');
     setCategoryList(response.data);
+    setLoading(false)
   }
-  useEffect(function () {
-    fetchAllCategory();
-  }, []);
 
   const handleOpenDialog = (rowData, status) => {
     setDialogState(status)
@@ -328,6 +356,7 @@ export default function DisplayAll({refresh,setRefresh }) {
     }).then(async (result) => {
       /* Read more about isConfirmed, isDenied below */
       if (result.isConfirmed) {
+        setLoading(true)
         var response = await postData('category/delete_category', { categoryid: cid })
         Swal.fire(response.message);
         fetchAllCategory()
@@ -336,6 +365,7 @@ export default function DisplayAll({refresh,setRefresh }) {
         Swal.fire("Changes are not saved", "", "info");
       }
     });
+    setLoading(false)
   }
 
   const displayCategory = () => {
@@ -343,9 +373,9 @@ export default function DisplayAll({refresh,setRefresh }) {
       <MaterialTable
         title="Food Category List"
         columns={[
-          { title: 'branch Id', field: 'branchid' },
+          { title: 'Category ID', field: 'categoryid' },
           { title: 'Category Name', field: 'categoryname' },
-          { title: 'Category Icon', render: (rowData) => (<div onClick={() => handleOpenDialog(rowData, 'picture ')}><EditIconComponent image={rowData.categoryicon} /></div>) },
+          { title: 'Category Icon', render: (rowData) => (<div onClick={() => handleOpenDialog(rowData, 'picture')}><EditIconComponent image={rowData?.categoryicon} /></div>) },
         ]}
         data={categoryList}
         actions={[
@@ -364,10 +394,14 @@ export default function DisplayAll({refresh,setRefresh }) {
     </div>)
   };
 
-  return (<div className={classes.root}>
-    <div className={classes.box}>
-      {displayCategory()}
-    </div>
-    {showDialog()}
-  </div>);
+  return (
+    <>
+      <LoadingOverlay open={loading} />
+      <div className={classes.root}>
+        <div className={classes.box}>
+          {displayCategory()}
+        </div>
+        {showDialog()}
+      </div></>
+  );
 }

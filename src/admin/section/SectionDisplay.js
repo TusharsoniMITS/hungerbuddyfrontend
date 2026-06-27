@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -66,6 +67,8 @@ export default function SectionDisplay({ refresh, setRefresh }) {
     const [batchList, setBatchList] = useState([])
     const [sectionName, sectSectionName] = useState('')
     const [sectionId, setSectionId] = useState('')
+    const [loading, setLoading] = useState(false);
+
 
 
     useEffect(() => {
@@ -99,6 +102,7 @@ export default function SectionDisplay({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var body = {
                 'sectionid': sectionId,
                 'branchid': branchId, 'batchid': batchId,
@@ -106,6 +110,7 @@ export default function SectionDisplay({ refresh, setRefresh }) {
                 'createdtime': getTime(), 'userid': 'tushar'
             }
             var response = await postData('section/edit_section', body);
+            setLoading(false)
             if (response.status) {
                 Swal.fire({
                     position: "center",
@@ -128,7 +133,6 @@ export default function SectionDisplay({ refresh, setRefresh }) {
                 });
             }
         }
-
     }
 
     const fetchAllBranch = async () => {
@@ -198,8 +202,10 @@ export default function SectionDisplay({ refresh, setRefresh }) {
 
     /***************************************/
     const fetchAllSection = async () => {
+        setLoading(true)
         var response = await getData('section/fetch_all_section');
         setSectionList(response.data);
+        setLoading(false)
     }
     useEffect(function () {
         fetchAllSection();
@@ -228,6 +234,7 @@ export default function SectionDisplay({ refresh, setRefresh }) {
         </div>)
     }
     const handleDelete = async (cid) => {
+        setLoading(true)
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
@@ -243,6 +250,7 @@ export default function SectionDisplay({ refresh, setRefresh }) {
                 Swal.fire("Changes are not saved", "", "info");
             }
         });
+        setLoading(false)
     }
 
     const displayBatch = () => {
@@ -272,10 +280,12 @@ export default function SectionDisplay({ refresh, setRefresh }) {
         </div>)
     };
 
-    return (<div className={classes.root}>
-        <div className={classes.box}>
-            {displayBatch()}
-        </div>
-        {showDialog()}
-    </div>);
+    return (<>
+        <LoadingOverlay open={loading} />
+        <div className={classes.root}>
+            <div className={classes.box}>
+                {displayBatch()}
+            </div>
+            {showDialog()}
+        </div></>);
 }

@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl, FormControlLabel, FormLabel, InputLabel, MenuItem, Radio, RadioGroup, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -75,7 +76,8 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     const [parmanentPin, setParmanentPin] = useState('')
     const [aadharNo, setAadharNo] = useState('')
     const [employeePicture, setemployeePicture] = useState({ bytes: '', fileName: icon })
-
+        const [loading, setLoading] = useState(false);
+    
 
     const [error, setError] = useState({ imgError: null })
     const handleError = (label, message) => {
@@ -87,8 +89,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     }, []);
 
     const fetchAllBranch = async () => {
+        setLoading(true)
         var res = await getData('employee/fetch_branch');
         setBranchList(res.data);
+        setLoading(false)
     };
 
     const fillbranch = () => {
@@ -100,8 +104,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
 
     /********************* current state or city fetch*********/
     const fetchAllCurrentState = async () => {
+        setLoading(true)
         var res = await getData('statecity/fetch_state')
         setCurrentStateList(res.data)
+        setLoading(false)
     }
 
     useEffect(function () {
@@ -119,8 +125,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     }
 
     const fetchAllCurrentCity = async (sid) => {
+        setLoading(true)
         var res = await postData('statecity/fetch_cities', { 'stateid': sid })
         setCurrentCityList(res.data)
+        setLoading(false)
     }
 
     const fillCurrentCity = () => {
@@ -132,8 +140,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
 
     /************** parmanent state and city fetch ******/
     const fetchAllParmanentState = async () => {
+        setLoading(true)
         var res = await getData('statecity/fetch_state')
         setParmanentStateList(res.data)
+        setLoading(false)
     }
 
     useEffect(function () {
@@ -151,8 +161,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     }
 
     const fetchAllParmanentCity = async (sid) => {
+        setLoading(true)
         var res = await postData('statecity/fetch_cities', { 'stateid': sid })
         setParmanentCityList(res.data)
+        setLoading(false)
     }
 
     const fillParmanentCity = () => {
@@ -163,8 +175,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     /**************************************************/
 
     const handleimage = (e) => {
+        setLoading(true)
         setemployeePicture({ bytes: e.target.files[0], fileName: URL.createObjectURL(e.target.files[0]) })
         setError((prev) => ({ ...prev, 'imgError': '' }))
+        setLoading(false)
     }
 
     const validation = () => {
@@ -182,6 +196,7 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var formData = new FormData()
             formData.append('branchid', branchId);
             formData.append('employeename', employeeName);
@@ -225,6 +240,7 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
                 });
             }
         }
+        setLoading(false)
         handleReset()
         setRefresh(!refresh)
 
@@ -252,7 +268,10 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
     }
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (
+        <>
+        <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -400,5 +419,5 @@ export default function EmployeesInterface({ refresh, setRefresh }) {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div></>)
 }

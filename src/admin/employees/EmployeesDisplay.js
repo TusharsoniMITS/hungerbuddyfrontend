@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
 import { FormControl, FormControlLabel, FormLabel, InputLabel, MenuItem, Radio, RadioGroup, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -103,6 +104,8 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
     const [dialogState, setDialogState] = useState('')
     const [pictureStatusButton, setPictureStatusButton] = useState(false)
     const [tempPicture, setTempPicture] = useState('')
+    const [loading, setLoading] = useState(false);
+
 
     useEffect(() => {
         fetchAllEmployee()
@@ -125,6 +128,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
         return isError
     }
     const handleclick = async () => {
+        setLoading(true)
         var body = {
             'employeeid': employeeId,
             'employeename': employeeName,
@@ -174,6 +178,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
             });
 
         }
+        setLoading(false)
     }
 
     const handleimage = (e) => {
@@ -188,6 +193,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
     }
 
     const handleEditPicture = async () => {
+        setLoading(true)
         var formData = new FormData();
         formData.append('employeeid', employeeId);
         formData.append('employee_picture', employeePicture.bytes);
@@ -196,7 +202,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
         formData.append('userid', 'tushar');
 
         var response = await postData('employee/edit_picture_employee', formData);
-
+        setLoading(false)
         if (response.status) {
             Swal.fire({
                 position: "center",
@@ -493,8 +499,10 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
 
     /***************************************/
     const fetchAllEmployee = async () => {
+        setLoading(true)
         var response = await getData('employee/fetch_all_employee');
         setEmployeeList(response.data);
+        setLoading(false)
     }
     useEffect(function () {
         fetchAllEmployee();
@@ -555,6 +563,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
         </div>)
     }
     const handleDelete = async (cid) => {
+        setLoading(true)
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
@@ -570,6 +579,7 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
                 Swal.fire("Changes are not saved", "", "info");
             }
         });
+        setLoading(false)
     }
 
     const displayStudent = () => {
@@ -613,10 +623,11 @@ export default function EmployeesDisplay({ refresh, setRefresh }) {
         </div>)
     };
 
-    return (<div className={classes.root}>
+    return (<><LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             {displayStudent()}
         </div>
         {showDialog()}
-    </div>);
+    </div></>);
 }

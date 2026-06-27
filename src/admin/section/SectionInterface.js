@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -57,6 +58,7 @@ export default function SectionInterface({ refresh, setRefresh }) {
     const [batchId, setBatchId] = useState('')
     const [batchList, setBatchList] = useState([])
     const [sectionName, sectSectionName] = useState('')
+              const [loading, setLoading] = useState(false);
 
     const [error, setError] = useState({ imgError: null })
     const handleError = (label, message) => {
@@ -108,6 +110,7 @@ export default function SectionInterface({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var body = {
                 'branchid': branchId, 'batchid': batchId,
                 'sectionname': sectionName, 'createddate': getDate(),
@@ -134,6 +137,7 @@ export default function SectionInterface({ refresh, setRefresh }) {
                 });
             }
         }
+            setLoading(false)
         handleReset()
         setRefresh(!refresh)
 
@@ -146,7 +150,9 @@ export default function SectionInterface({ refresh, setRefresh }) {
     }
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -187,5 +193,5 @@ export default function SectionInterface({ refresh, setRefresh }) {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div></>)
 }

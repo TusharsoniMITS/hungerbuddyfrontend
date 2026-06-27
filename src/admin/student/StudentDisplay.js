@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 // import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
 import { FormControl, FormControlLabel, FormLabel, InputLabel, MenuItem, Radio, RadioGroup, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -95,6 +96,8 @@ export default function StudentDisplay({ refresh, setRefresh }) {
     const [dialogState, setDialogState] = useState('')
     const [pictureStatusButton, setPictureStatusButton] = useState(false)
     const [tempPicture, setTempPicture] = useState('')
+    const [loading, setLoading] = useState(false);
+
 
     useEffect(() => {
         fetchAllStudent()
@@ -118,6 +121,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var body = {
                 'enrollmentno': enrollment, 'branchid': branchId,
                 'batchid': batchId,
@@ -145,6 +149,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
                 'userid': 'tushar',
             }
             var response = await postData('student/edit_student', body);
+            setLoading(false)
             if (response.status) {
                 Swal.fire({
                     position: "center",
@@ -167,7 +172,6 @@ export default function StudentDisplay({ refresh, setRefresh }) {
                 });
             }
         }
-
     }
     const handleimage = (e) => {
         setStudentPicture((prev) => ({ ...prev, bytes: e.target.files[0], fileName: URL.createObjectURL(e.target.files[0]) }))
@@ -181,6 +185,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
     }
 
     const handleEditPicture = async () => {
+        setLoading(true)
         var formData = new FormData();
         formData.append('enrollmentno', enrollment);
         formData.append('student_picture', studentPicture.bytes);
@@ -189,7 +194,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
         formData.append('userid', 'tushar');
 
         var response = await postData('student/edit_picture_student', formData);
-
+        setLoading(false)
         if (response.status) {
             Swal.fire({
                 position: "center",
@@ -421,7 +426,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
                         <div style={{ padding: "0px 5px 0px 5px" }}>
                             <FormControl size="small">
                                 <FormLabel typeof="legend" id="demo-row-radio-buttons-group-label">Gender</FormLabel>
-                                <RadioGroup row aria-labelledby="demo-row-radio-buttons-group-label" name="row-radio-buttons-group" onChange={(e) => setGender(e.target.value)}  value={gender}>
+                                <RadioGroup row aria-labelledby="demo-row-radio-buttons-group-label" name="row-radio-buttons-group" onChange={(e) => setGender(e.target.value)} value={gender}>
                                     <FormControlLabel value="female" control={<Radio />} label="Female" />
                                     <FormControlLabel value="male" control={<Radio />} label="Male" />
                                 </RadioGroup>
@@ -524,8 +529,10 @@ export default function StudentDisplay({ refresh, setRefresh }) {
 
     /***************************************/
     const fetchAllStudent = async () => {
+        setLoading(true)
         var response = await getData('student/fetch_all_student');
         setStudentList(response.data);
+        setLoading(false)
     }
     useEffect(function () {
         fetchAllStudent();
@@ -536,8 +543,8 @@ export default function StudentDisplay({ refresh, setRefresh }) {
         setDialogState(status)
 
 
-    await fetchAllCurrentCity(rowData.current_state)
-    await fetchAllParmanentCity(rowData.parmanent_state)
+        await fetchAllCurrentCity(rowData.current_state)
+        await fetchAllParmanentCity(rowData.parmanent_state)
 
         setEnrollment(rowData.enrollmentno)
         setBranchId(rowData.branchid)
@@ -596,6 +603,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
         </div>)
     }
     const handleDelete = async (cid) => {
+        setLoading(true)
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
@@ -611,6 +619,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
                 Swal.fire("Changes are not saved", "", "info");
             }
         });
+        setLoading(false)
     }
 
     const displayStudent = () => {
@@ -623,7 +632,7 @@ export default function StudentDisplay({ refresh, setRefresh }) {
                     { title: 'Batch Name', field: 'batchname' },
                     { title: 'Section Name', field: 'sectionname' },
                     { title: 'Student Name', field: 'studentname' },
-                    { title: 'D.O.B', render: (rowData) =>(rowData.dob.split('T')[0]) },
+                    { title: 'D.O.B', render: (rowData) => (rowData.dob.split('T')[0]) },
                     { title: 'Gender', field: 'gender' },
                     { title: 'Father Name', field: 'fathername' },
                     { title: 'Mother Name', field: 'mothername' },
@@ -659,10 +668,12 @@ export default function StudentDisplay({ refresh, setRefresh }) {
         </div>)
     };
 
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             {displayStudent()}
         </div>
         {showDialog()}
-    </div>);
+    </div></>);
 }

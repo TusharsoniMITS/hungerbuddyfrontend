@@ -21,6 +21,7 @@ import Swal from 'sweetalert2'
 import { useEffect, useState } from "react";
 
 export default function BranchDashboard() {
+    
     var navigate = useNavigate()
     const Swal = require('sweetalert2')
     const handleClick = () => {
@@ -40,10 +41,10 @@ export default function BranchDashboard() {
                     setUserData(null)
                 }
             }else{
-            navigate('/branchlogin')
+            navigate('/')
             }
         }else{
-            navigate('/branchlogin')
+            navigate('/')
         }
     }, [])
     const handleLogout = () => {

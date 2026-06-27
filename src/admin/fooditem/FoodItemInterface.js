@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -67,6 +68,8 @@ export default function FoodItemInterface() {
     const [picture, setPicture] = useState({ bytes: '', fileName: icon })
     const [rating, setRating] = useState('')
     const [status, setStatus] = useState('')
+    const [loading, setLoading] = useState(false);
+
 
     useEffect(function () {
         fetchCategory()
@@ -74,12 +77,16 @@ export default function FoodItemInterface() {
     }, [])
 
     const fetchCategory = async () => {
+        setLoading(true)
         var response = await getData('fooditem/fetch_category')
         setCategoryList(response.data)
+        setLoading(false)
     }
     const fetchBranch = async () => {
+        setLoading(true)
         var response = await getData('fooditem/fetch_branch')
         setBranchList(response.data)
+        setLoading(false)
     }
 
     const fillCategory = () => {
@@ -87,7 +94,6 @@ export default function FoodItemInterface() {
             return <MenuItem value={item.categoryid}>{item.categoryname}</MenuItem>
         })
     }
-
     const fillBranch = () => {
         return branchList.map((item) => {
             return <MenuItem value={item.branchid}>{item.branchname}</MenuItem>
@@ -153,6 +159,7 @@ export default function FoodItemInterface() {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var formData = new FormData();
             formData.append('categoryid', categoryId);
             formData.append('branchid', branchId);
@@ -191,6 +198,7 @@ export default function FoodItemInterface() {
             }
         }
         handleReset()
+        setLoading(false)
         // setRefresh(!refresh)
 
     }
@@ -219,7 +227,9 @@ export default function FoodItemInterface() {
     }
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -355,5 +365,7 @@ export default function FoodItemInterface() {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div>
+    </>
+    )
 }

@@ -2,15 +2,11 @@ import MaterialTable from "@material-table/core";
 import { useEffect, useState } from "react";
 import { getDate, getTime, postData, getData, serverURL } from "../../services/FetchNodeServices";
 import { makeStyles } from "@mui/styles";
-import { IconButton, Dialog, DialogTitle, DialogContent, Button, Grid, TextField } from "@mui/material";
+import { IconButton, Dialog, DialogContent, Button, Grid } from "@mui/material";
 import Swal from "sweetalert2";
-import icon from '../../assets/icon.png'
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
-import EditIcon from '@mui/icons-material/Edit';
-import EditIconComponent from "../../components/EditIconComponent";
-
-
+import LoadingOverlay from "../../components/LoadingOverlay";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -31,7 +27,7 @@ const useStyle = makeStyles(() => ({
     },
     heading: {
         width: '100%',
-        height: '9vh',
+        height: 'auto',
         background: '#572445',
         borderTopLeftRadius: 9,
         borderTopRightRadius: 9,
@@ -49,53 +45,56 @@ const useStyle = makeStyles(() => ({
         color: '#fff',
         padding: 0
     }
-}))
+}));
 
-export default function PictureDisplay({ refresh, setRefresh }) {
-    const classes = useStyle()
+export default function PictureDisplay({ refresh }) {
+    const classes = useStyle();
+    const [pictureId, setPictureId] = useState('')
     const [pictureList, setPictureList] = useState([]);
-    const [open, setOpen] = useState(false)
-    /*****************category view************/
+    const [masterCategoryList, setMasterCategoryList] = useState([]); // <-- 1. New Master Category State
+    const [open, setOpen] = useState(false);
 
-    const [categoryId, setCategoryId] = useState('')
-    const [branchId, setBranchId] = useState('')
-    const [categoryName, setcategoryName] = useState('')
-    const [categoryIcon, setCategoryIcon] = useState({ bytes: '', fileName: icon })
-    const [error, setError] = useState({ imgError: null })
-    const [dialogState, setDialogState] = useState('')
-    const [pictureStatusButton, setPictureStatusButton] = useState(false)
-    const [tempPicture, setTempPicture] = useState('')
+    const [categoryId, setCategoryId] = useState('');
+    const [foodItemId, setFoodItemId] = useState('');
+    const [error, setError] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [foodItemList, setFoodItemList] = useState([]);
 
     useEffect(() => {
-        fetchAllCategory()
-    }, [refresh])
+        fetchAllPictures();
+        fetchMasterCategories(); // <-- Fetch master data on refresh
+    }, [refresh]);
 
     const handleError = (label, message) => {
-        setError((prev) => ({ ...prev, [label]: message }))
-    }
+        setError((prev) => ({ ...prev, [label]: message }));
+    };
 
     const validation = () => {
-        var isError = false
-        if (categoryName.length == 0) {
-            setError((prev) => ({ ...prev, 'categoryName': 'pls input category Name..' }))
-            isError = true
+        var isError = false;
+        if (!categoryId) {
+            setError((prev) => ({ ...prev, 'categoryId': 'pls select category Name..' }));
+            isError = true;
         }
-        // if (categoryIcon.bytes.length == 0) {
-        //   setError((prev) => ({ ...prev, 'imgError': 'pls input category Icon..' }))
-        //   isError = true
-        // }
-        return isError
-    }
+        if (!foodItemId) {
+            setError((prev) => ({ ...prev, 'foodItemId': 'pls select food item..' }));
+            isError = true;
+        }
+        return isError;
+    };
+
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true);
             var body = {
                 'categoryid': categoryId,
-                'categoryname': categoryName,
+                'fooditemid': foodItemId,
                 'createddate': getDate(),
                 'createdtime': getTime(),
-                'userid': 'tushar'
-            }
-            var response = await postData('category/edit_category', body);
+                'userid': 'tushar',
+                'pictureid': pictureId,
+            };
+            var response = await postData('morepicture/edit_morepicture_data', body);
+            setLoading(false);
             if (response.status) {
                 Swal.fire({
                     position: "center",
@@ -105,8 +104,8 @@ export default function PictureDisplay({ refresh, setRefresh }) {
                     timer: 2000,
                     toast: true
                 });
-                setOpen(false)
-                fetchAllCategory()
+                setOpen(false);
+                fetchAllPictures();
             } else {
                 Swal.fire({
                     position: "center",
@@ -118,282 +117,203 @@ export default function PictureDisplay({ refresh, setRefresh }) {
                 });
             }
         }
+    };
 
-    }
-    const handleimage = (e) => {
-        setCategoryIcon((prev) => ({ ...prev, bytes: e.target.files[0], fileName: URL.createObjectURL(e.target.files[0]) }))
-        setError((prev) => ({ ...prev, 'imgError': '' }))
-        setPictureStatusButton(true)
-    }
-
-    const handleCancel = () => {
-        setCategoryIcon({ fileName: tempPicture, bytes: '' })
-        setPictureStatusButton(false)
-    }
-
-    const handleEditPicture = async () => {
-        var formData = new FormData();
-        formData.append('categoryid', categoryId);
-        formData.append('categoryicon', categoryIcon.bytes);
-        formData.append('createddate', getDate());
-        formData.append('createdtime', getTime());
-        formData.append('userid', 'tushar');
-
-        var response = await postData(
-            'category/edit_picture_category',
-            formData
-        );
-
-        if (response.status) {
-            Swal.fire({
-                position: "center",
-                icon: "success",
-                title: response.message,
-                showConfirmButton: false,
-                timer: 2000,
-                toast: true
-            });
-
-            setOpen(false);
-            fetchAllCategory();
-
-        } else {
-
-            Swal.fire({
-                position: "center",
-                icon: "error",
-                title: response.message,
-                showConfirmButton: false,
-                timer: 2000,
-                toast: true
-            });
+    const fetchAllFoodItem = async (sid) => {
+        var res = await postData('morepicture/fetch_all_fooditem', { 'categoryid': sid });
+        if (res && res.data) {
+            setFoodItemList(res.data);
         }
+    };
 
-    }
+    const fillFoodItem = () => {
+        return foodItemList.map((item, index) => {
+            return (<MenuItem key={index} value={item.fooditemid}>{item.fooditemname}</MenuItem>);
+        });
+    };
 
-    const saveAndCancelButton = () => {
-        return (<div style={{ display: "flex", justifyContent: 'space-evenly', width: '100%' }}>
-            <Button onClick={handleEditPicture} variant="contained" style={{ backgroundColor: '#572445' }} >Save</Button>
-            <Button onClick={handleCancel} variant="contained" color="error" >Cancel</Button>
-        </div>)
-    }
+    // <-- 2. Updated to map master lists instead of picture variations
+    const fillcategory = () => {
+        return masterCategoryList.map((item, index) => {
+            return <MenuItem key={index} value={item.categoryid}>{item.categoryname}</MenuItem>;
+        });
+    };
 
-    const showPictureInterface = () => {
-        return (<div style={{ display: "flex", justifyContent: "center", padding: 0 }}>
-            <Grid container spacing={0.5}>
-                <Grid size={12}>
-                    <div className={classes.heading}>
-                        <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', width: '40%', marginLeft: 10 }}>
-                            <div className={classes.titleStyle}>HungerBuddy</div>
-                            <div className={classes.subTitleStyle}>Edit Food Category Picture</div>
-                        </div>
-                        <div style={{ display: "flex", marginLeft: 'auto', marginTop: '-30px' }}>
-                            <IconButton
-                                onClick={handleCloseDialog}
-                                aria-label="delete"
-                                style={{
-                                    position: "absolute",
-                                    top: 40,
-                                    left: 530,
-                                    zIndex: 1,
-                                    background: "rgba(0,0,0,0.5)"
-                                }}
-                            >
-                                <CloseIcon style={{ color: "white" }} />
-                            </IconButton>
-                        </div>
-                    </div>
-                </Grid>
-                <Grid size={12}>
-                    <div style={{ position: "relative" }}>
-                        <IconButton
-                            onClick={handleCloseDialog}
-                            aria-label="delete"
-                            style={{
-                                position: "absolute",
-                                top: 10,
-                                left: 500,
-                                zIndex: 1,
-                                background: "rgba(0,0,0,0.5)"
-                            }}
-                        >
-                            <CloseIcon style={{ color: "white" }} />
-                        </IconButton>
-
-                        <img
-                            src={categoryIcon.fileName}
-                            style={{ width: "100%", height: "auto" }}
-                        />
-                    </div>
-                </Grid>
-                <Grid size={6}>
-                    <div style={{ padding: 10 }}>
-                        <Button style={{ backgroundColor: '#572445' }} endIcon={<CloudUploadIcon />} variant='contained' fullWidth component='label'>Upload File
-                            <input onChange={handleimage} type="file" hidden multiple />
-                        </Button>
-                    </div>
-                </Grid>
-                <Grid size={6}>
-                    <div style={{ padding: 10 }}>
-                        {pictureStatusButton ? saveAndCancelButton() : <></>}
-                    </div>
-                </Grid>
-            </Grid>
-        </div>)
-    }
+    const handleCategoryChange = (e) => {
+        setCategoryId(e.target.value);
+        setFoodItemId('');
+        fetchAllFoodItem(e.target.value);
+    };
 
     const showCategoryInterface = () => {
-        return (<div >
-            <Grid container spacing={1}>
-                <Grid size={12}>
-                    <div className={classes.heading}>
-                        <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', width: '40%', marginLeft: 10 }}>
-                            <div className={classes.titleStyle}>HungerBuddy</div>
-                            <div className={classes.subTitleStyle}>Edit Food Category</div>
+        return (
+            <div>
+                <Grid container spacing={1}>
+                    <Grid size={12}>
+                        <div className={classes.heading}>
+                            <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', width: '40%', marginLeft: 10 }}>
+                                <div className={classes.titleStyle}>HungerBuddy</div>
+                                <div className={classes.subTitleStyle}>Edit More Picture</div>
+                            </div>
+                            <div style={{ display: "flex", marginLeft: 'auto', marginTop: '-30px' }}>
+                                <IconButton onClick={handleCloseDialog} aria-label="close">
+                                    <CloseIcon style={{ color: 'white' }} />
+                                </IconButton>
+                            </div>
                         </div>
-                        <div style={{ display: "flex", marginLeft: 'auto', marginTop: '-30px' }}>
-                            <IconButton onClick={handleCloseDialog} aria-label="close">
-                                <CloseIcon style={{ color: 'white' }} />
-                            </IconButton>
+                    </Grid>
+                    <Grid size={12}>
+                        <div style={{ padding: 10, }}>
+                            <FormControl fullWidth error={!!error?.categoryId} onFocus={() => handleError('categoryId', '')}>
+                                <InputLabel>Category Name</InputLabel>
+                                <Select label='Category Name' value={categoryId} onChange={handleCategoryChange}>
+                                    <MenuItem value="">-Select Category-</MenuItem>
+                                    {fillcategory()}
+                                </Select>
+                            </FormControl>
                         </div>
-                    </div>
+                    </Grid>
+                    <Grid size={12}>
+                        <div style={{ padding: 10 }}>
+                            <FormControl fullWidth error={!!error?.foodItemId} onFocus={() => handleError('foodItemId', '')}>
+                                <InputLabel>Food Name</InputLabel>
+                                <Select label='Food Name' value={foodItemId} onChange={(e) => setFoodItemId(e.target.value)}>
+                                    <MenuItem value="">-Select FoodItem-</MenuItem>
+                                    {fillFoodItem()}
+                                </Select>
+                            </FormControl>
+                        </div>
+                    </Grid>
+                    <Grid size={6}>
+                        <div style={{ padding: 10 }}>
+                            <Button onClick={handleCloseDialog} variant="contained" color='error' fullWidth>
+                                Close
+                            </Button>
+                        </div>
+                    </Grid>
+                    <Grid size={6}>
+                        <div style={{ padding: 10 }}>
+                            <Button onClick={handleclick} variant="contained" style={{ backgroundColor: '#572445' }} fullWidth>
+                                Submit
+                            </Button>
+                        </div>
+                    </Grid>
                 </Grid>
-                <Grid size={12}>
-                    <div style={{ padding: 10 }}>
-                        <TextField onChange={(e) => setBranchId(e.target.value)} label='Branch Name' fullWidth value={branchId} />
-                    </div>
-                </Grid>
-                <Grid size={12}>
-                    <div style={{ padding: 10 }}>
-                        <TextField onChange={(e) => setcategoryName(e.target.value)} label='Category Name' fullWidth value={categoryName} helperText={error?.categoryName} error={error?.categoryName} onFocus={() => handleError('categoryName', '')} />
-                    </div>
-                </Grid>
-                <Grid size={6}>
-                    <div style={{ padding: 10 }}>
-                        <Button onClick={handleCloseDialog} variant="contained" color='error' fullWidth>
-                            Close
-                        </Button>
-                    </div>
-                </Grid>
-                <Grid size={6}>
-                    <div style={{ padding: 10 }}>
-                        <Button onClick={handleclick} variant="contained" style={{ backgroundColor: '#572445' }} fullWidth>
-                            Submit
-                        </Button>
-                    </div>
-                </Grid>
-            </Grid>
-        </div>)
-    }
+            </div>
+        );
+    };
 
-    /***************************************/
-    const fetchAllCategory = async () => {
+    const fetchAllPictures = async () => {
+        setLoading(true);
         var response = await getData('morepicture/fetch_all_picture');
-        setPictureList(response.data);
-    }
-    useEffect(function () {
-        fetchAllCategory();
+        if (response && response.data) {
+            setPictureList(response.data);
+        }
+        setLoading(false);
+    };
+
+    // <-- 3. New Function to fetch all base categories
+    const fetchMasterCategories = async () => {
+        var response = await getData('category/fetch_all_category');
+        if (response && response.data) {
+            setMasterCategoryList(response.data);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllPictures();
+        fetchMasterCategories();
     }, []);
 
-    const handleOpenDialog = (rowData, status) => {
-        setDialogState(status)
-        setCategoryId(rowData.categoryid)
-        setBranchId(rowData.branchid)
-        setcategoryName(rowData.categoryname)
-        setCategoryIcon({ fileName: `${serverURL}/images/${rowData.categoryicon}`, bytes: '' })
-        setOpen(true)
-        setTempPicture(`${serverURL}/images/${rowData.categoryicon}`)
-    }
-    const handleCloseDialog = () => {
-        setPictureStatusButton(false)
-        setOpen(false)
-    }
+    const handleOpenDialog = (rowData) => {
+        setPictureId(rowData.pictureid || '')
+        setCategoryId(rowData.categoryid || '');
+        setFoodItemId(rowData.fooditemid || '');
+        setOpen(true);
+        if (rowData.categoryid) {
+            fetchAllFoodItem(rowData.categoryid);
+        }
+    };
 
-    const showDialog = () => {
-        return (<div>
-            <Dialog open={open}>
-                <DialogTitle>
-                </DialogTitle>
-                <DialogContent>
-                    {dialogState == 'Data' ? showCategoryInterface() : showPictureInterface()}
-                </DialogContent>
-            </Dialog>
-        </div>)
-    }
+    const handleCloseDialog = () => {
+        setOpen(false);
+    };
+
     const handleDelete = async (cid) => {
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
             confirmButtonText: "Delete",
         }).then(async (result) => {
-            /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
-                var response = await postData('category/delete_category', { categoryid: cid })
+                var response = await postData('morepicture/delete_morepicture', { pictureid: cid });
                 Swal.fire(response.message);
-                fetchAllCategory()
-            }
-            else if (result.isDenied) {
-                Swal.fire("Changes are not saved", "", "info");
+                fetchAllPictures();
             }
         });
-    }
-
-    const displayCategory = () => {
-        return (<div>
-            <MaterialTable
-                title="Food Picture List"
-                columns={[
-                    { title: 'Picture Id', field: 'pictureid' },
-                    { title: 'Category Name', field: 'categoryname' },
-                    { title: 'FoodItem Name', field: 'fooditemname' },
-                    {
-                        title: "FoodItem Images",
-                        render: (rowData) => (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: 5,
-                                    flexWrap: "wrap",
-                                }}
-                            >
-                                {rowData.picture.split(",").map((item, index) => (
-                                    <img
-                                        key={index}
-                                        src={`${serverURL}/images/${item.trim()}`}
-                                        alt="food"
-                                        style={{
-                                            width: 60,
-                                            height: 60,
-                                            borderRadius: 5,
-                                            objectFit: "cover",
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        ),
-                    }
-                ]}
-                data={pictureList}
-                actions={[
-                    {
-                        icon: 'edit',
-                        tooltip: 'Edit Data',
-                        onClick: (event, rowData) => handleOpenDialog(rowData, 'Data')
-                    },
-                    {
-                        icon: 'delete',
-                        tooltip: 'delete Data',
-                        onClick: (event, rowData) => handleDelete(rowData.categoryid)
-                    }
-                ]}
-            />
-        </div>)
     };
 
-    return (<div className={classes.root}>
-        <div className={classes.box}>
-            {displayCategory()}
-        </div>
-        {showDialog()}
-    </div>);
+    const displayCategory = () => {
+        return (
+            <div>
+                <MaterialTable
+                    title="Food Picture List"
+                    columns={[
+                        { title: 'Picture Id', field: 'pictureid' },
+                        { title: 'Category Name', field: 'categoryname' },
+                        { title: 'FoodItem Name', field: 'fooditemname' },
+                        {
+                            title: "FoodItem Images",
+                            render: (rowData) => (
+                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                    {rowData.picture && rowData.picture.split(",").map((item, index) => (
+                                        <img
+                                            key={index}
+                                            src={`${serverURL}/images/${item.trim()}`}
+                                            alt="food"
+                                            style={{
+                                                width: 60,
+                                                height: 60,
+                                                borderRadius: 5,
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            ),
+                        }
+                    ]}
+                    data={pictureList}
+                    actions={[
+                        {
+                            icon: 'edit',
+                            tooltip: 'Edit Category Info',
+                            onClick: (event, rowData) => handleOpenDialog(rowData)
+                        },
+                        {
+                            icon: 'delete',
+                            tooltip: 'Delete Data',
+                            onClick: (event, rowData) => handleDelete(rowData.pictureid)
+                        }
+                    ]}
+                />
+            </div>
+        );
+    };
+
+    return (
+        <>
+            <LoadingOverlay open={loading} />
+            <div className={classes.root}>
+                <div className={classes.box}>
+                    {displayCategory()}
+                </div>
+                <Dialog open={open} onClose={handleCloseDialog}>
+                    <DialogContent>
+                        {showCategoryInterface()}
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </>
+    );
 }

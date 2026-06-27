@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
 import { FormControl,InputLabel,Select,MenuItem } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -70,6 +71,8 @@ export default function BranchDisplay({ refresh, setRefresh }) {
     const [contact, setContact] = useState('')
     const [contactPerson, setContactPerson] = useState('')
     const [error, setError] = useState({ imgError: null })
+      const [loading, setLoading] = useState(false);
+    
 
     /******state city*********/
 
@@ -131,6 +134,7 @@ export default function BranchDisplay({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+        setLoading(true)
             var body = {
                 'branchid': branchId,
                 'branchname': branchName, 'address': address,
@@ -141,6 +145,7 @@ export default function BranchDisplay({ refresh, setRefresh }) {
                 'userid': 'tushar'
             }
             var response = await postData('branch/edit_branch', body);
+                    setLoading(false)
             if (response.status) {
                 Swal.fire({
                     position: "center",
@@ -277,6 +282,7 @@ export default function BranchDisplay({ refresh, setRefresh }) {
         </div>)
     }
     const handleDelete = async (cid) => {
+        setLoading(true)
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
@@ -292,6 +298,7 @@ export default function BranchDisplay({ refresh, setRefresh }) {
                 Swal.fire("Changes are not saved", "", "info");
             }
         });
+        setLoading(false)
     }
 
     const displayBranch = () => {
@@ -325,10 +332,13 @@ export default function BranchDisplay({ refresh, setRefresh }) {
             />
         </div>)
     };
-    return (<div className={classes.root}>
+    return (
+    <>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             {displayBranch()}
         </div>
         {showDialog()}
-    </div>);
+    </div></>);
 }

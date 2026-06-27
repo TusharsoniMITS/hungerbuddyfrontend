@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 const useStyle = makeStyles(() => ({
     root: {
@@ -56,6 +57,8 @@ export default function BatchInterface({ refresh, setRefresh }) {
     const [branchList, setBranchList] = useState([])
     const [session, setSession] = useState('')
     const [batchName, setBatchName] = useState('')
+          const [loading, setLoading] = useState(false);
+    
 
     const [error, setError] = useState({ imgError: null })
     const handleError = (label, message) => {
@@ -67,8 +70,11 @@ export default function BatchInterface({ refresh, setRefresh }) {
     }, []);
 
     const fetchAllBranch = async () => {
+            setLoading(true)
         var res = await getData('batch/fetch_branch');
         setBranchList(res.data);
+            setLoading(false)
+
     };
 
     const fillbranch = () => {
@@ -95,6 +101,7 @@ export default function BatchInterface({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var body = {
                 'branchid': branchId, 'session': session,
                 'batchname': batchName, 'createddate': getDate(),
@@ -121,6 +128,8 @@ export default function BatchInterface({ refresh, setRefresh }) {
                 });
             }
         }
+            setLoading(false)
+
         handleReset()
         setRefresh(!refresh)
 
@@ -133,7 +142,10 @@ export default function BatchInterface({ refresh, setRefresh }) {
     }
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (
+        <>
+        <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -198,5 +210,7 @@ export default function BatchInterface({ refresh, setRefresh }) {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div>
+    </>
+    )
 }

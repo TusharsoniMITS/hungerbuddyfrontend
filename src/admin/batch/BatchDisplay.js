@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import EditIconComponent from "../../components/EditIconComponent";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 
@@ -65,6 +66,8 @@ export default function BatchDisplay({ refresh, setRefresh }) {
     const [branchList, setBranchList] = useState([])
     const [session, setSession] = useState('')
     const [batchName, setBatchName] = useState('')
+          const [loading, setLoading] = useState(false);
+    
 
     useEffect(function () {
         fetchAllBranch();
@@ -107,6 +110,8 @@ export default function BatchDisplay({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
+
             var body = {
                 'batchid': batchId,
                 'branchid': branchId, 'session': session,
@@ -114,6 +119,7 @@ export default function BatchDisplay({ refresh, setRefresh }) {
                 'createdtime': getTime(), 'userid': 'tushar'
             }
             var response = await postData('batch/edit_batch', body);
+                        setLoading(false)
             if (response.status) {
                 Swal.fire({
                     position: "center",
@@ -136,7 +142,6 @@ export default function BatchDisplay({ refresh, setRefresh }) {
                 });
             }
         }
-
     }
 
     const showCategoryInterface = () => {
@@ -238,6 +243,8 @@ export default function BatchDisplay({ refresh, setRefresh }) {
         </div>)
     }
     const handleDelete = async (cid) => {
+            setLoading(true)
+        
         Swal.fire({
             title: "Do you want to Delete the Data ?",
             showCancelButton: true,
@@ -253,6 +260,8 @@ export default function BatchDisplay({ refresh, setRefresh }) {
                 Swal.fire("Changes are not saved", "", "info");
             }
         });
+            setLoading(false)
+
     }
 
     const displayBatch = () => {
@@ -282,10 +291,12 @@ export default function BatchDisplay({ refresh, setRefresh }) {
         </div>)
     };
 
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             {displayBatch()}
         </div>
         {showDialog()}
-    </div>);
+    </div></>);
 }

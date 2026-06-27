@@ -9,6 +9,7 @@ import { getData, getDate, getTime, postData } from "../../services/FetchNodeSer
 import { red } from "@mui/material/colors";
 import Swal from "sweetalert2";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 
 const useStyle = makeStyles(() => ({
@@ -60,6 +61,8 @@ export default function PictureInterface({ refresh, setRefresh }) {
     const [categoryName, setcategoryName] = useState('')
     const [pictures, setPictures] = useState([])
     const [error, setError] = useState({ imgError: null })
+    const [loading, setLoading] = useState(false);
+
     const handleError = (label, message) => {
         setError((prev) => ({ ...prev, [label]: message }))
     }
@@ -91,6 +94,7 @@ export default function PictureInterface({ refresh, setRefresh }) {
     }
     const handleclick = async () => {
         if (!validation()) {
+            setLoading(true)
             var formData = new FormData();
             formData.append('categoryid', categoryId);
             formData.append('fooditemid', foodItemId);
@@ -121,6 +125,7 @@ export default function PictureInterface({ refresh, setRefresh }) {
                 });
             }
         }
+            setLoading(false)
         handleReset()
         setRefresh(!refresh)
 
@@ -139,8 +144,10 @@ export default function PictureInterface({ refresh, setRefresh }) {
     }, []);
 
     const fetchAllCategory = async () => {
+        setLoading(true)
         var res = await getData('morepicture/fetch_all_category');
         setCategoryList(res.data);
+        setLoading(false)
     };
 
     const fillcategory = () => {
@@ -166,7 +173,9 @@ export default function PictureInterface({ refresh, setRefresh }) {
     
 
     var classes = useStyle()
-    return (<div className={classes.root}>
+    return (<>
+    <LoadingOverlay open={loading} />
+    <div className={classes.root}>
         <div className={classes.box}>
             <Grid container spacing={1}>
                 <Grid size={12}>
@@ -221,5 +230,5 @@ export default function PictureInterface({ refresh, setRefresh }) {
                 </Grid>
             </Grid>
         </div>
-    </div>)
+    </div></>)
 }
