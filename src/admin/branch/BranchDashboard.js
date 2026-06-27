@@ -73,7 +73,7 @@ export default function BranchDashboard() {
                     <ListItemAvatar>
                         <Avatar src={dashboard} sx={{ width: 28, height: 28 }} variant="rounded" />
                     </ListItemAvatar>
-                    <ListItemText primary={<div style={{ fontFamily: 'Quicksand' }}>Dashboard</div>} />
+                    <ListItemText primary={<div style={{ fontFamily: 'Quicksand' }}>Branch Dashboard</div>} />
 
 
                 </ListItem>
