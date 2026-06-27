@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { makeStyles } from "@mui/styles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
@@ -63,10 +64,13 @@ export default function AdminLogin() {
   const classes = useStyles();
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate('');
   const handleSubmit = async () => {
+    setLoading(true)
     var body = { emailid:emailId, password:password };
     var res = await postData("admin/chk_Admin_login", body);
+    setLoading(false)
     if (res.status===true) {
       navigate("/admindashboard");
       localStorage.setItem("ADMIN", JSON.stringify(res.data));
@@ -82,6 +86,8 @@ export default function AdminLogin() {
     }
   };
   return (
+    <>
+    <LoadingOverlay open={loading} />
     <div className={classes.root}>
       <div className={classes.box} >
         <Grid container spacing={1}>
@@ -142,6 +148,6 @@ export default function AdminLogin() {
           </Grid>
         </Grid>
       </div>
-    </div>
+    </div></>
   );
 }

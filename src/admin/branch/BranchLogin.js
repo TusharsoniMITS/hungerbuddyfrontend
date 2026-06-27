@@ -1,10 +1,11 @@
 import Card from "@mui/material/Card";
 import { postData } from "../../services/FetchNodeServices";
 import { Grid, FormControl, FormLabel, TextField, Button } from "@mui/material";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { makeStyles } from "@mui/styles";
+import LoadingOverlay from "../../components/LoadingOverlay";
 const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
@@ -66,6 +67,7 @@ export default function BranchLogin() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate('');
   const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const local = localStorage.getItem('BRANCH')
@@ -83,23 +85,27 @@ export default function BranchLogin() {
   }, [])
 
   const handleSubmit = async () => {
-      var body = { emailid: emailId, password: password };
-      var res = await postData("branch/chk_branch_login", body);
-      if (res.status == true) {
-        navigate("/branchdashboard");
-        localStorage.setItem("BRANCH", JSON.stringify(res.data));
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: res.message,
-          showConfirmButton: false,
-          timer: 3000,
-          toast: true,
-          position: "center",
-        });
-      }
+    setLoading(true)
+    var body = { emailid: emailId, password: password };
+    var res = await postData("branch/chk_branch_login", body);
+    setLoading(false)
+    if (res.status == true) {
+      navigate("/branchdashboard");
+      localStorage.setItem("BRANCH", JSON.stringify(res.data));
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: res.message,
+        showConfirmButton: false,
+        timer: 3000,
+        toast: true,
+        position: "center",
+      });
+    }
   };
   return (
+    <>
+    <LoadingOverlay open={loading} />
     <div className={classes.root}>
       <div className={classes.box} >
         <Grid container spacing={1}>
@@ -151,15 +157,15 @@ export default function BranchLogin() {
           <Grid size={12} style={{ padding: 10 }}>
             <Button
               fullWidth
-              style={{ color: "#ffff", background: "hsla(321, 32%, 37%, 1.00)"}}
+              style={{ color: "#ffff", background: "hsla(321, 32%, 37%, 1.00)" }}
               variant="contained"
-              onClick={()=>navigate('/admin')}
+              onClick={() => navigate('/admin')}
             >
               Admin Login
             </Button>
           </Grid>
         </Grid>
       </div>
-    </div>
+    </div></>
   );
 }
