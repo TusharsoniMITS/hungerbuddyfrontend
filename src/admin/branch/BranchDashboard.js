@@ -57,7 +57,7 @@ export default function BranchDashboard() {
         }).then((userData) => {
             /* Read more about isConfirmed, isDenied below */
             if (userData.isConfirmed) {
-                navigate('/branchlogin')
+                navigate('/')
                 localStorage.removeItem('BRANCH')
             }
             else if (userData.isDenied) {
